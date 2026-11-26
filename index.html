@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Smart Sales - Water Agency</title>
+<style>
+:root{--blue:#1769aa;--bg:#f3f6fa;--ink:#172536;--muted:#64748b;--line:#dce4ee;--green:#138a55;--red:#c43d3d}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px system-ui,-apple-system,Segoe UI,sans-serif}
+header{background:linear-gradient(120deg,#075985,#1683bd);color:white;padding:20px max(16px,calc((100% - 1100px)/2));}
+header h1{margin:0;font-size:25px}header p{margin:4px 0 0;opacity:.9}
+main{max-width:1100px;margin:auto;padding:16px}
+nav{display:flex;gap:8px;overflow:auto;padding:4px 0 14px}
+nav button,.btn{border:0;border-radius:10px;padding:11px 14px;background:#e3edf7;color:#17456a;font-weight:650;white-space:nowrap;cursor:pointer}
+nav button.active,.btn.primary{background:var(--blue);color:white}
+.panel{display:none}.panel.active{display:block}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px;margin-bottom:16px}
+.card,.box{background:white;border:1px solid var(--line);border-radius:14px;padding:15px;box-shadow:0 2px 8px #1b35500a}
+.card small{color:var(--muted)}.card strong{display:block;font-size:23px;margin-top:5px}
+h2{font-size:19px;margin:8px 0 12px}h3{margin:0 0 12px;font-size:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+label{display:block;font-size:13px;color:#45576a;margin:9px 0 5px}
+input,select{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:9px;font:inherit;background:white;color:var(--ink)}
+button:disabled{opacity:.5;cursor:not-allowed}
+form .btn{margin-top:13px}
+table{width:100%;border-collapse:collapse;background:white;font-size:14px}
+th,td{text-align:left;padding:10px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{background:#edf3f8;color:#40566b}
+.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:12px}
+.muted{color:var(--muted);font-size:13px}.positive{color:var(--green)}.negative{color:var(--red)}
+.notice{background:#fff8df;border:1px solid #f0dda1;padding:12px;border-radius:10px;margin:12px 0;font-size:13px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.btn.danger{background:#fde8e8;color:#9f2525}.btn.small{padding:6px 9px;font-size:12px}
+footer{text-align:center;color:var(--muted);padding:22px;font-size:12px}
+@media(max-width:600px){header{padding:17px}main{padding:12px}nav button{padding:10px 12px}.card strong{font-size:20px}}
+</style>
+</head>
+<body>
+<header><h1>💧 SMART SALES</h1><p>Water Agency Management · आपका अपना हिसाब-किताब</p></header>
+<main>
+<nav id="nav">
+<button class="active" data-tab="home">डैशबोर्ड</button><button data-tab="purchase">स्टॉक खरीदें</button><button data-tab="sale">बिक्री / ऑर्डर</button><button data-tab="customers">ग्राहक</button><button data-tab="reports">रिपोर्ट</button><button data-tab="settings">सेटिंग / बैकअप</button>
+</nav>
+<section id="home" class="panel active">
+<div class="cards">
+<div class="card"><small>कुल स्टॉक (केस)</small><strong id="totalStock">0</strong></div>
+<div class="card"><small>आज की बिक्री</small><strong id="todaySales">₹0</strong></div>
+<div class="card"><small>कुल बकाया</small><strong id="totalDue">₹0</strong></div>
+<div class="card"><small>कुल बिक्री (रुपये)</small><strong id="allSales">₹0</strong></div>
+</div>
+<h2>मौजूदा स्टॉक</h2><div class="tablewrap"><table><thead><tr><th>साइज</th><th>बोतल/केस</th><th>स्टॉक (केस)</th><th>खरीद रेट/केस</th><th>बिक्री रेट/केस</th></tr></thead><tbody id="stockRows"></tbody></table></div>
+<div class="notice">शुरू करने के लिए पहले “स्टॉक खरीदें” में केस की संख्या और खरीद रेट डालें। फिर “बिक्री / ऑर्डर” से बिक्री दर्ज करें।</div>
+</section>
+<section id="purchase" class="panel">
+<div class="box"><h2>स्टॉक खरीदें</h2><form id="purchaseForm" class="grid">
+<div><label>पानी का साइज</label><select id="pSize"></select></div>
+<div><label>कितने केस खरीदे?</label><input id="pQty" type="number" min="1" step="1" required placeholder="जैसे 20"></div>
+<div><label>खरीद रेट (₹ प्रति केस)</label><input id="pRate" type="number" min="0" step=".01" required placeholder="जैसे 120"></div>
+<div><label>कंपनी / सप्लायर (वैकल्पिक)</label><input id="supplier" placeholder="सप्लायर का नाम"></div>
+</div><button class="btn primary">खरीद सेव करें</button></form></div>
+<h2>खरीद का रिकॉर्ड</h2><div class="tablewrap"><table><thead><tr><th>तारीख</th><th>साइज</th><th>केस</th><th>रेट</th><th>कुल</th></tr></thead><tbody id="purchaseRows"></tbody></table></div>
+</section>
+<section id="sale" class="panel">
+<div class="box"><h2>बिक्री / नया ऑर्डर</h2><form id="saleForm">
+<div class="grid">
+<div><label>ग्राहक / दुकान का नाम</label><input id="buyer" required placeholder="दुकान का नाम"></div>
+<div><label>मोबाइल नंबर</label><input id="phone" inputmode="numeric" placeholder="मोबाइल नंबर"></div>
+<div><label>पानी का साइज</label><select id="sSize"></select></div>
+<div><label>कितने केस?</label><input id="sQty" type="number" min="1" step="1" required placeholder="जैसे 5"></div>
+<div><label>बिक्री रेट (₹ प्रति केस)</label><input id="sRate" type="number" min="0" step=".01" required placeholder="रेट"></div>
+<div><label>पेमेंट स्थिति</label><select id="payType"><option value="cash">पूरा पेमेंट मिला</option><option value="credit">उधार / बाकी</option><option value="partial">कुछ पेमेंट मिला</option></select></div>
+<div><label>अभी कितना पेमेंट मिला? (₹)</label><input id="paid" type="number" min="0" step=".01" value="0"></div>
+<div><label>डिलीवरी / नोट (वैकल्पिक)</label><input id="saleNote" placeholder="जैसे डिलीवरी हो गई"></div>
+</div><p class="muted" id="salePreview">कुल राशि: ₹0</p><button class="btn primary">बिक्री सेव करें</button></form></div>
+<h2>बिक्री का रिकॉर्ड</h2><div class="tablewrap"><table><thead><tr><th>तारीख</th><th>ग्राहक</th><th>साइज</th><th>केस</th><th>कुल</th><th>मिला</th><th>बाकी</th></tr></thead><tbody id="saleRows"></tbody></table></div>
+</section>
+<section id="customers" class="panel">
+<h2>ग्राहक और बकाया</h2><div class="tablewrap"><table><thead><tr><th>ग्राहक</th><th>मोबाइल</th><th>कुल बिक्री</th><th>कुल मिला</th><th>बाकी</th><th>पेमेंट दर्ज करें</th></tr></thead><tbody id="customerRows"></tbody></table></div>
+</section>
+<section id="reports" class="panel">
+<div class="cards"><div class="card"><small>कुल खरीद खर्च</small><strong id="purchaseTotal">₹0</strong></div><div class="card"><small>कुल बिक्री</small><strong id="salesTotal">₹0</strong></div><div class="card"><small>बिके हुए केस</small><strong id="casesSold">0</strong></div><div class="card"><small>अनुमानित सकल लाभ*</small><strong id="grossProfit">₹0</strong></div></div>
+<p class="muted">*अनुमानित लाभ = बिक्री राशि − बिके केस की खरीद लागत। इसमें किराया, पेट्रोल, मजदूरी और अन्य खर्च शामिल नहीं हैं।</p>
+<h2>साइज के हिसाब से बिक्री</h2><div class="tablewrap"><table><thead><tr><th>साइज</th><th>बिके केस</th><th>बोतलें</th><th>बिक्री राशि</th></tr></thead><tbody id="reportRows"></tbody></table></div>
+</section>
+<section id="settings" class="panel">
+<div class="box"><h2>एजेंसी सेटिंग</h2><label>ब्रांड / एजेंसी का नाम</label><input id="brandName" placeholder="अपने पानी के ब्रांड का नाम"><button class="btn primary" id="saveBrand">नाम सेव करें</button></div>
+<div class="box" style="margin-top:12px"><h2>डेटा बैकअप</h2><p class="muted">बैकअप डाउनलोड करके सुरक्षित रखें। मोबाइल और कंप्यूटर में डेटा अपने-आप साझा नहीं होगा; एक डिवाइस से बैकअप लेकर दूसरे में Restore करें।</p><div class="actions"><button class="btn primary" id="exportBtn">बैकअप डाउनलोड</button><label class="btn" for="importFile">बैकअप Restore</label><input id="importFile" type="file" accept="application/json" style="display:none"></div></div>
+<div class="notice">यह शुरुआती वर्जन डेटा इसी ब्राउज़र/डिवाइस में सेव करता है। ब्राउज़र का डेटा साफ करने से रिकॉर्ड मिट सकता है। नियमित बैकअप लें। ऑनलाइन सिंक और लॉगिन अभी शामिल नहीं हैं।</div>
+<button class="btn danger" id="clearBtn">सारा डेटा मिटाएँ</button>
+</section>
+</main><footer>Smart Sales · शुरुआती लोकल वर्जन</footer>
+<script>
+const products=[{size:'250 ML',bottles:48,stock:0,cost:0,rate:0},{size:'500 ML',bottles:24,stock:0,cost:0,rate:0},{size:'1 Litre',bottles:15,stock:0,cost:0,rate:0},{size:'2 Litre',bottles:12,stock:0,cost:0,rate:0}];
+const KEY='smartSalesWaterV1';
+const totalStockEl=document.getElementById('totalStock'),todaySalesEl=document.getElementById('todaySales'),totalDueEl=document.getElementById('totalDue'),allSalesEl=document.getElementById('allSales');
+let data=load();
+function fresh(){return {products:products.map(x=>({...x})),purchases:[],sales:[],brand:''}}
+function load(){try{let x=JSON.parse(localStorage.getItem(KEY));if(x&&x.products&&x.sales)return x}catch(e){}return fresh()}
+function save(){localStorage.setItem(KEY,JSON.stringify(data));render()}
+function money(n){return '₹'+Number(n||0).toLocaleString('en-IN',{maximumFractionDigits:2})}
+function today(){return new Date().toLocaleDateString('en-CA')}
+function dateText(d){return new Date(d).toLocaleDateString('en-IN')}
+function product(size){return data.products.find(p=>p.size===size)}
+function fillSelects(){['pSize','sSize'].forEach(id=>document.getElementById(id).innerHTML=data.products.map(p=>`<option>${p.size}</option>`).join(''))}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('nav button,.panel').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.getElementById(b.dataset.tab).classList.add('active');render()});
+document.getElementById('purchaseForm').onsubmit=e=>{e.preventDefault();let p=product(pSize.value),q=+pQty.value,r=+pRate.value;if(q<=0||r<0)return;let old=p.stock;p.stock+=q;p.cost=old+q?((old*p.cost+q*r)/(old+q)):r;data.purchases.unshift({date:new Date().toISOString(),size:p.size,qty:q,rate:r,total:q*r,supplier:supplier.value});save();e.target.reset();};
+document.getElementById('saleForm').onsubmit=e=>{e.preventDefault();let p=product(sSize.value),q=+sQty.value,r=+sRate.value,total=q*r,paidAmt=+paid.value;if(q<=0||q>p.stock){alert('इतना स्टॉक उपलब्ध नहीं है। उपलब्ध स्टॉक: '+p.stock+' केस');return}if(paidAmt<0||paidAmt>total){alert('पेमेंट राशि सही डालें।');return}p.stock-=q;data.sales.unshift({date:new Date().toISOString(),buyer:buyer.value.trim(),phone:phone.value.trim(),size:p.size,qty:q,rate:r,total,paid:paidAmt,note:saleNote.value,cost:p.cost});save();e.target.reset();paid.value='0';};
+function dueByBuyer(name){return data.sales.filter(s=>s.buyer===name).reduce((a,s)=>a+s.total-s.paid,0)}
+function render(){
+fillSelects();
+let totalStock=data.products.reduce((a,p)=>a+p.stock,0),sales=data.sales.reduce((a,s)=>a+s.total,0),due=data.sales.reduce((a,s)=>a+s.total-s.paid,0),todaySales=data.sales.filter(s=>s.date.slice(0,10)===today()).reduce((a,s)=>a+s.total,0);
+totalStockEl.textContent=totalStock;todaySalesEl.textContent=money(todaySales);totalDueEl.textContent=money(due);allSalesEl.textContent=money(sales);
+stockRows.innerHTML=data.products.map(p=>`<tr><td>${p.size}</td><td>${p.bottles}</td><td>${p.stock}</td><td>${money(p.cost)}</td><td>${money(p.rate)}</td></tr>`).join('');
+purchaseRows.innerHTML=data.purchases.map(x=>`<tr><td>${dateText(x.date)}</td><td>${x.size}</td><td>${x.qty}</td><td>${money(x.rate)}</td><td>${money(x.total)}</td></tr>`).join('')||'<tr><td colspan="5">अभी खरीद रिकॉर्ड नहीं है</td></tr>';
+saleRows.innerHTML=data.sales.map(x=>`<tr><td>${dateText(x.date)}</td><td>${esc(x.buyer)}</td><td>${x.size}</td><td>${x.qty}</td><td>${money(x.total)}</td><td>${money(x.paid)}</td><td class="${x.total>x.paid?'negative':'positive'}">${money(x.total-x.paid)}</td></tr>`).join('')||'<tr><td colspan="7">अभी बिक्री रिकॉर्ड नहीं है</td></tr>';
+let names=[...new Set(data.sales.map(s=>s.buyer))];
+customerRows.innerHTML=names.map(n=>{let ss=data.sales.filter(s=>s.buyer===n),t=ss.reduce((a,s)=>a+s.total,0),pa=ss.reduce((a,s)=>a+s.paid,0),ph=ss.find(s=>s.phone)?.phone||'';return `<tr><td>${esc(n)}</td><td>${esc(ph)}</td><td>${money(t)}</td><td>${money(pa)}</td><td class="negative">${money(t-pa)}</td><td><button class="btn small" onclick="collect('${encodeURIComponent(n)}')">पेमेंट</button></td></tr>`}).join('')||'<tr><td colspan="6">अभी ग्राहक रिकॉर्ड नहीं है</td></tr>';
+let pc=data.purchases.reduce((a,x)=>a+x.total,0),cases=data.sales.reduce((a,x)=>a+x.qty,0),cost=data.sales.reduce((a,x)=>a+x.qty*x.cost,0);
+purchaseTotal.textContent=money(pc);salesTotal.textContent=money(sales);casesSold.textContent=cases;grossProfit.textContent=money(sales-cost);
+reportRows.innerHTML=data.products.map(p=>{let ss=data.sales.filter(s=>s.size===p.size),q=ss.reduce((a,s)=>a+s.qty,0),v=ss.reduce((a,s)=>a+s.total,0);return `<tr><td>${p.size}</td><td>${q}</td><td>${q*p.bottles}</td><td>${money(v)}</td></tr>`}).join('');
+brandName.value=data.brand||'';
+}
+function collect(encoded){let n=decodeURIComponent(encoded),d=dueByBuyer(n);if(d<=0){alert('इस ग्राहक का कोई बकाया नहीं है।');return}let v=Number(prompt(n+' का बाकी '+money(d)+' है। कितना पेमेंट मिला?'));if(!Number.isFinite(v)||v<=0||v>d)return alert('सही पेमेंट राशि डालें।');let left=v;for(let s of data.sales.filter(s=>s.buyer===n)){let due=s.total-s.paid,add=Math.min(due,left);s.paid+=add;left-=add;if(left<=0)break}save()}
+function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+sSize.onchange=()=>{let p=product(sSize.value);sRate.value=p.rate||''};
+sQty.oninput=salePreviewUpdate;sRate.oninput=salePreviewUpdate;function salePreviewUpdate(){salePreview.textContent='कुल राशि: '+money((+sQty.value||0)*(+sRate.value||0))}
+saveBrand.onclick=()=>{data.brand=brandName.value.trim();save();alert('नाम सेव हो गया')};
+exportBtn.onclick=()=>{let blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='smart-sales-backup.json';a.click();URL.revokeObjectURL(a.href)};
+importFile.onchange=async e=>{try{let x=JSON.parse(await e.target.files[0].text());if(!x.products||!x.sales)throw Error();data=x;save();alert('बैकअप Restore हो गया')}catch(err){alert('यह बैकअप फाइल सही नहीं है')}e.target.value=''};
+clearBtn.onclick=()=>{if(confirm('क्या सच में पूरा स्टॉक, बिक्री और ग्राहक रिकॉर्ड मिटाना चाहते हैं?')){data=fresh();save()}};
+render();
+</script>
+</body></html>
